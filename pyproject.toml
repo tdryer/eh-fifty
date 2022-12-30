@@ -1,0 +1,24 @@
+[project]
+name = "eh-fifty"
+version = "0.1.0"
+dependencies = [
+  "pyusb>=1.2.1,<2",
+  "simple-hexdump==0.0.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "black==22.12.0",
+  "isort==5.11.4",
+  "mypy==0.991",
+  "pylint==2.15.9",
+]
+
+[tool.pylint.'MESSAGES CONTROL']
+disable = "fixme"
+
+[tool.pylint.REPORTS]
+score = "no"
+
+[tool.mypy]
+ignore_missing_imports = true
