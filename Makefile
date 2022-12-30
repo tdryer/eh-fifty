@@ -1,26 +1,32 @@
+SOURCES = eh_fifty.py tests.py
+
 .PHONY: develop
 develop:
 	python -m venv venv
 	venv/bin/pip install --editable .[dev]
+
+.PHONY: test
+test:
+	venv/bin/pytest --verbose tests.py
 
 .PHONY: check
 check: isort black pylint mypy
 
 .PHONY: isort
 isort:
-	venv/bin/isort --check eh_fifty.py
+	venv/bin/isort --check $(SOURCES)
 
 .PHONY: black
 black:
-	venv/bin/black --check --quiet eh_fifty.py
+	venv/bin/black --check --quiet $(SOURCES)
 
 .PHONY: pylint
 pylint:
-	venv/bin/pylint eh_fifty.py
+	venv/bin/pylint $(SOURCES)
 
 .PHONY: mypy
 mypy:
-	venv/bin/mypy --no-error-summary eh_fifty.py
+	venv/bin/mypy --no-error-summary $(SOURCES)
 
 .PHONY: clean
 clean:

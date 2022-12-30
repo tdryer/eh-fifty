@@ -12,6 +12,7 @@ dev = [
   "isort==5.11.4",
   "mypy==0.991",
   "pylint==2.15.9",
+  "pytest==7.2.0",
 ]
 
 [tool.pylint.'MESSAGES CONTROL']
