@@ -1,8 +1,9 @@
+PYTHON = python
 SOURCES = eh_fifty.py tests.py
 
 .PHONY: develop
 develop:
-	python -m venv venv
+	$(PYTHON) -m venv venv
 	venv/bin/pip install --editable .[dev]
 
 .PHONY: test
@@ -30,4 +31,4 @@ mypy:
 
 .PHONY: clean
 clean:
-	rm -rf venv __pycache__ *.egg-info
+	rm -rf venv __pycache__ *.egg-info dist
