@@ -1,34 +1,33 @@
-PYTHON = python
 SOURCES = eh_fifty.py tests.py
 
-.PHONY: develop
-develop:
-	$(PYTHON) -m venv venv
-	venv/bin/pip install --editable .[dev]
+.PHONY: shell
+shell:
+	hatch -e test shell
 
 .PHONY: test
 test:
-	venv/bin/pytest --verbose tests.py
+	pytest --verbose tests.py
 
 .PHONY: check
 check: isort black pylint mypy
 
 .PHONY: isort
 isort:
-	venv/bin/isort --check $(SOURCES)
+	isort --check $(SOURCES)
 
 .PHONY: black
 black:
-	venv/bin/black --check --quiet $(SOURCES)
+	black --check --quiet $(SOURCES)
 
 .PHONY: pylint
 pylint:
-	venv/bin/pylint $(SOURCES)
+	pylint $(SOURCES)
 
 .PHONY: mypy
 mypy:
-	venv/bin/mypy --no-error-summary $(SOURCES)
+	mypy --no-error-summary $(SOURCES)
 
 .PHONY: clean
 clean:
-	rm -rf venv __pycache__ *.egg-info dist
+	hatch env prune
+	rm -rf venv __pycache__ *.egg-info dist .mypy_cache .pytest_cache

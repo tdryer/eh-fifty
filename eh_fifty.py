@@ -9,6 +9,8 @@ import usb.core
 import usb.util
 from hexdump import hexdump
 
+__version__ = "0.1.0"
+
 LOGGER = logging.getLogger(__name__)
 
 _VENDOR = 0x9886
