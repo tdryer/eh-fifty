@@ -15,11 +15,11 @@ from eh_fifty import _EQ_PRESETS, Device, NoiseGateMode, SliderType
 
 
 @pytest.fixture(name="device", scope="session")
-def _device():
+def _device() -> Device:
     return Device()
 
 
-def test_alert_volume(device):
+def test_alert_volume(device: Device) -> None:
     saved_alert_volume = random.randrange(0, 100)
     device.set_alert_volume(saved_alert_volume)
 
@@ -32,8 +32,7 @@ def test_alert_volume(device):
     assert device.get_alert_volume(saved=True) == saved_alert_volume
 
 
-def test_noise_gate_mode(device):
-
+def test_noise_gate_mode(device: Device) -> None:
     saved_noise_gate_mode = random.choice(list(NoiseGateMode))
     device.set_noise_gate_mode(saved_noise_gate_mode)
 
@@ -46,7 +45,7 @@ def test_noise_gate_mode(device):
     assert device.get_noise_gate_mode(saved=True) == saved_noise_gate_mode
 
 
-def test_sliders(device):
+def test_sliders(device: Device) -> None:
     saved_slider_values = {
         slider_type: random.randrange(0, 100) for slider_type in SliderType
     }
@@ -69,7 +68,7 @@ def test_sliders(device):
         )
 
 
-def test_active_eq_preset(device):
+def test_active_eq_preset(device: Device) -> None:
     eq_preset = random.choice(_EQ_PRESETS)
     device.set_active_eq_preset(eq_preset)
 
@@ -78,20 +77,20 @@ def test_active_eq_preset(device):
     assert device.get_active_eq_preset() == eq_preset
 
 
-def test_get_eq_preset_name(device):
+def test_get_eq_preset_name(device: Device) -> None:
     for preset in _EQ_PRESETS:
         name = device.get_eq_preset_name(preset)
         assert len(name) > 0
         assert all(c in string.ascii_letters for c in name)
 
 
-def test_get_charge_status(device):
+def test_get_charge_status(device: Device) -> None:
     charge_status = device.get_charge_status()
     assert isinstance(charge_status.is_charging, bool)
     assert 0 <= charge_status.charge_percent <= 100
 
 
-def test_balance(device):
+def test_balance(device: Device) -> None:
     saved_balance = random.randrange(0, 255)
     device.set_balance(saved_balance)
 
@@ -104,7 +103,7 @@ def test_balance(device):
     assert device.get_balance(saved=True) == saved_balance
 
 
-def test_headset_status(device):
+def test_headset_status(device: Device) -> None:
     headset_status = device.get_headset_status()
     assert isinstance(headset_status.is_docked, bool)
     assert isinstance(headset_status.is_on, bool)

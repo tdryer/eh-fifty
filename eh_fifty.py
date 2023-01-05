@@ -1,5 +1,7 @@
 """Configure Astro A50 gen 4 devices."""
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass
 from enum import Enum
@@ -25,21 +27,25 @@ _EQ_PRESETS = [1, 2, 3]
 class Device:
     """Astro A50 gen 4 USB device."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._dev = usb.core.find(idVendor=_VENDOR, idProduct=_PRODUCT)
         if self._dev is None:
             raise DeviceNotConnected
         if self._dev.is_kernel_driver_active(_INTERFACE):
             self._dev.detach_kernel_driver(_INTERFACE)
 
-    def _request(self, request_type, payload=b""):
-        request = [0x02, request_type.value] + list(payload)
+    def _request(
+        self, request_type: _RequestType, payload: list[int] | None = None
+    ) -> bytes:
+        request = [0x02, request_type.value]
+        if payload:
+            request.extend(payload)
         assert len(request) <= 64
         LOGGER.debug("Writing %s request\n%s", request_type, hexdump(request))
         assert self._dev.write(_ENDPOINT_OUT, request, _TIMEOUT_MS) == len(request)
 
         try:
-            resp = self._dev.read(_ENDPOINT_IN, 64, _TIMEOUT_MS)
+            resp: bytes = self._dev.read(_ENDPOINT_IN, 64, _TIMEOUT_MS)
         except usb.core.USBTimeoutError:
             # Resetting the device after a timeout is necessary to avoid
             # getting garbage in subsequent responses.
@@ -52,14 +58,14 @@ class Device:
         length = resp[2]
         return bytes(resp[3 : 3 + length])
 
-    def get_active_eq_preset(self):
+    def get_active_eq_preset(self) -> int:
         """Get the active EQ preset."""
         resp = self._request(_RequestType.GET_ACTIVE_EQ_PRESET)
         assert len(resp) == 1
         assert resp[0] in _EQ_PRESETS
         return resp[0]
 
-    def set_active_eq_preset(self, preset):
+    def set_active_eq_preset(self, preset: int) -> None:
         """Set the active EQ preset."""
         assert preset in _EQ_PRESETS
         resp = self._request(_RequestType.SET_ACTIVE_EQ_PRESET, [0x01, preset])
@@ -67,7 +73,7 @@ class Device:
         assert resp[0] == _RequestType.SET_ACTIVE_EQ_PRESET.value
         assert resp[1] == preset
 
-    def get_eq_preset_name(self, preset):
+    def get_eq_preset_name(self, preset: int) -> str:
         """Get an EQ preset name."""
         assert preset in _EQ_PRESETS
         resp = self._request(_RequestType.GET_EQ_PRESET_NAME, [0x00, preset])
@@ -77,7 +83,7 @@ class Device:
         preset_name = takewhile(lambda c: c > 0, resp[2:])
         return bytes(preset_name).decode()
 
-    def get_charge_status(self):
+    def get_charge_status(self) -> ChargeStatus:
         """Get the change status."""
         resp = self._request(_RequestType.GET_CHARGE_STATUS)
         assert len(resp) == 1
@@ -86,7 +92,7 @@ class Device:
             charge_percent=resp[0] & 127,
         )
 
-    def get_balance(self, saved=False):
+    def get_balance(self, saved: bool = False) -> int:
         """Get the game/chat audio balance.
 
         Balance is represented by integer in range 0 (game-only) to 255
@@ -99,7 +105,7 @@ class Device:
         assert 0 <= resp[0] <= 255
         return resp[0]
 
-    def set_balance(self, balance):
+    def set_balance(self, balance: int) -> None:
         """Set the game/chat audio balance.
 
         Balance is represented by integer in range 0 (game-only) to 255
@@ -110,7 +116,7 @@ class Device:
         assert len(resp) == 1
         assert resp[0] == _RequestType.SET_BALANCE.value
 
-    def get_headset_status(self):
+    def get_headset_status(self) -> HeadsetStatus:
         """Get the headset status."""
         resp = self._request(_RequestType.GET_HEADSET_STATUS)
         assert len(resp) == 1
@@ -119,7 +125,7 @@ class Device:
             is_on=bool(resp[0] & 0x02),
         )
 
-    def get_alert_volume(self, saved=False):
+    def get_alert_volume(self, saved: bool = False) -> int:
         """Get the alert volume as percent.
 
         If `saved=True`, return the saved value instead of the active value.
@@ -129,14 +135,14 @@ class Device:
         assert 0 <= resp[0] <= 100
         return resp[0]
 
-    def set_alert_volume(self, volume_percent):
+    def set_alert_volume(self, volume_percent: int) -> None:
         """Set the alert volume as percent."""
         assert 0 <= volume_percent <= 100
         resp = self._request(_RequestType.SET_ALERT_VOLUME, [0x01, volume_percent])
         assert len(resp) == 1
         assert resp[0] == _RequestType.SET_ALERT_VOLUME.value
 
-    def get_noise_gate_mode(self, saved=False):
+    def get_noise_gate_mode(self, saved: bool = False) -> NoiseGateMode:
         """Get the noise gate mode.
 
         If `saved=True`, return the saved value instead of the active value.
@@ -146,7 +152,7 @@ class Device:
         assert resp[0] == _RequestType.GET_NOISE_GATE_MODE.value
         return NoiseGateMode(resp[1 + int(saved)])
 
-    def set_noise_gate_mode(self, noise_gate_mode):
+    def set_noise_gate_mode(self, noise_gate_mode: NoiseGateMode) -> None:
         """Set the noise gate mode."""
         assert isinstance(noise_gate_mode, NoiseGateMode)
         resp = self._request(
@@ -155,7 +161,7 @@ class Device:
         assert len(resp) == 1
         assert resp[0] == noise_gate_mode.value
 
-    def get_slider_value(self, slider_type, saved=False):
+    def get_slider_value(self, slider_type: SliderType, saved: bool = False) -> int:
         """Get slider slider value.
 
         If `saved=True`, return the saved value instead of the active value.
@@ -167,7 +173,7 @@ class Device:
         assert resp[1] == slider_type.value
         return resp[2 + int(saved)]
 
-    def set_slider_value(self, slider_type, value_percent):
+    def set_slider_value(self, slider_type: SliderType, value_percent: int) -> None:
         """Set a slider value as percent."""
         assert isinstance(slider_type, SliderType)
         assert 0 <= value_percent <= 100
@@ -178,7 +184,7 @@ class Device:
         assert resp[0] == _RequestType.SET_SLIDER_VALUE.value
         assert resp[1] == slider_type.value
 
-    def save_values(self):
+    def save_values(self) -> None:
         """Save the active configuration values."""
         resp = self._request(_RequestType.SAVE_VALUES)
         assert len(resp) == 2

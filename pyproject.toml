@@ -57,4 +57,12 @@ disable = "fixme"
 score = "no"
 
 [tool.mypy]
+strict = true
+
+[[tool.mypy.overrides]]
+module = "usb.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "hexdump"
 ignore_missing_imports = true
