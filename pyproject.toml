@@ -27,7 +27,7 @@ build-backend = "hatchling.build"
 [tool.hatch.version]
 path = "eh_fifty.py"
 
-[tool.hatch.envs.test]
+[tool.hatch.envs.default]
 dependencies = [
   "black",
   "isort",
@@ -35,6 +35,20 @@ dependencies = [
   "pylint",
   "pytest",
 ]
+
+[tool.hatch.envs.default.scripts]
+check-isort = "isort --check eh_fifty.py tests.py"
+check-black = "black --check --quiet eh_fifty.py tests.py"
+check-pylint = "pylint eh_fifty.py tests.py"
+check-mypy = "mypy --no-error-summary eh_fifty.py tests.py"
+check = [
+  "check-isort",
+  "check-black",
+  "check-pylint",
+  "check-mypy",
+]
+test = "pytest --verbose tests.py {args:.}"
+clean = "rm -rf venv __pycache__ *.egg-info dist .mypy_cache .pytest_cache"
 
 [tool.pylint.'MESSAGES CONTROL']
 disable = "fixme"
