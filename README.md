@@ -99,11 +99,11 @@ Type | Description
 ...  |
 0x70 | unknown (related to EQ presets?)
 ...  |
-0x72 | get game/chat balance (duplicate)
-0x73 | set game/chat balance
+0x72 | get balance
+0x73 | set default balance
 ...  |
 0x76 | set alert volume
-0x77 | get game/chat balance
+0x77 | get default balance
 ...  |
 0x7A | get alert volume
 ...  |

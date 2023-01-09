@@ -91,16 +91,25 @@ def test_get_charge_status(device: Device) -> None:
 
 
 def test_balance(device: Device) -> None:
-    saved_balance = random.randrange(0, 255)
-    device.set_balance(saved_balance)
+    balance = random.randrange(0, 255)
+    device.set_default_balance(balance)
+
+    time.sleep(0.1)  # takes about 50ms to settle
+
+    assert device.get_balance() == balance
+
+
+def test_default_balance(device: Device) -> None:
+    saved_default_balance = random.randrange(0, 255)
+    device.set_default_balance(saved_default_balance)
 
     device.save_values()
 
-    active_balance = random.randrange(0, 255)
-    device.set_balance(active_balance)
+    active_default_balance = random.randrange(0, 255)
+    device.set_default_balance(active_default_balance)
 
-    assert device.get_balance() == active_balance
-    assert device.get_balance(saved=True) == saved_balance
+    assert device.get_default_balance() == active_default_balance
+    assert device.get_default_balance(saved=True) == saved_default_balance
 
 
 def test_headset_status(device: Device) -> None:

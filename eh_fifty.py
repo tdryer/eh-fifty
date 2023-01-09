@@ -92,29 +92,43 @@ class Device:
             charge_percent=resp[0] & 127,
         )
 
-    def get_balance(self, saved: bool = False) -> int:
-        """Get the game/chat audio balance.
+    def get_balance(self) -> int:
+        """Get the balance.
 
-        Balance is represented by integer in range 0 (game-only) to 255
-        (chat-only).
+        Balance is represented by integer in range 0 (100% game audio) to 255
+        (100% chat audio).
 
-        If `saved=True`, return the saved value instead of the active value.
+        This value is the same as the default balance, until the buttons on the
+        headset have adjusted it.
         """
-        resp = self._request(_RequestType.GET_BALANCE, [0x01, int(saved)])
+        resp = self._request(_RequestType.GET_BALANCE)
         assert len(resp) == 1
         assert 0 <= resp[0] <= 255
         return resp[0]
 
-    def set_balance(self, balance: int) -> None:
-        """Set the game/chat audio balance.
+    def get_default_balance(self, saved: bool = False) -> int:
+        """Get the default balance.
 
-        Balance is represented by integer in range 0 (game-only) to 255
-        (chat-only).
+        Balance is represented by integer in range 0 (100% game audio) to 255
+        (100% chat audio).
+
+        If `saved=True`, return the saved value instead of the active value.
+        """
+        resp = self._request(_RequestType.GET_DEFAULT_BALANCE, [0x01, int(saved)])
+        assert len(resp) == 1
+        assert 0 <= resp[0] <= 255
+        return resp[0]
+
+    def set_default_balance(self, balance: int) -> None:
+        """Set the default balance.
+
+        Balance is represented by integer in range 0 (100% game audio) to 255
+        (100% chat audio).
         """
         assert 0 <= balance <= 255
-        resp = self._request(_RequestType.SET_BALANCE, [0x01, balance])
+        resp = self._request(_RequestType.SET_DEFAULT_BALANCE, [0x01, balance])
         assert len(resp) == 1
-        assert resp[0] == _RequestType.SET_BALANCE.value
+        assert resp[0] == _RequestType.SET_DEFAULT_BALANCE.value
 
     def get_headset_status(self) -> HeadsetStatus:
         """Get the headset status."""
@@ -207,9 +221,10 @@ class _RequestType(Enum):
     GET_NOISE_GATE_MODE = 0x6A
     GET_ACTIVE_EQ_PRESET = 0x6C
     GET_EQ_PRESET_NAME = 0x6E
-    SET_BALANCE = 0x73
+    GET_BALANCE = 0x72
+    SET_DEFAULT_BALANCE = 0x73
     SET_ALERT_VOLUME = 0x76
-    GET_BALANCE = 0x77
+    GET_DEFAULT_BALANCE = 0x77
     GET_ALERT_VOLUME = 0x7A
     GET_CHARGE_STATUS = 0x7C
 
