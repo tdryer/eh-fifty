@@ -83,11 +83,11 @@ class Device:
         preset_name = takewhile(lambda c: c > 0, resp[2:])
         return bytes(preset_name).decode()
 
-    def get_charge_status(self) -> ChargeStatus:
-        """Get the change status."""
-        resp = self._request(_CommandType.GET_CHARGE_STATUS)
+    def get_battery_status(self) -> BatteryStatus:
+        """Get the battery status."""
+        resp = self._request(_CommandType.GET_BATTERY_STATUS)
         assert len(resp) == 1
-        return ChargeStatus(
+        return BatteryStatus(
             is_charging=bool(resp[0] & 128),
             charge_percent=resp[0] & 127,
         )
@@ -226,7 +226,7 @@ class _CommandType(Enum):
     SET_ALERT_VOLUME = 0x76
     GET_DEFAULT_BALANCE = 0x77
     GET_ALERT_VOLUME = 0x7A
-    GET_CHARGE_STATUS = 0x7C
+    GET_BATTERY_STATUS = 0x7C
 
 
 class _ResponseStatus(Enum):
@@ -256,8 +256,8 @@ class SliderType(Enum):
 
 
 @dataclass
-class ChargeStatus:
-    """Change status."""
+class BatteryStatus:
+    """Headset battery status."""
 
     is_charging: bool
     charge_percent: int

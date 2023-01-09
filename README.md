@@ -32,12 +32,12 @@ supported by [PyUSB][pyusb].
 
 ## Example
 
-Retrieve the current battery change:
+Retrieve the current battery charge:
 
     from eh_fifty import Device
     device = Device()
-    charge_status = device.get_charge_status()
-    print(f"Battery: {charge_status.charge_percent}%")
+    battery_status = device.get_battery_status()
+    print(f"Battery: {battery_status.charge_percent}%")
 
 ## Non-root access
 
@@ -107,7 +107,7 @@ Type | Description
 ...  |
 0x7A | get alert volume
 ...  |
-0x7C | get battery change level and charging status
+0x7C | get battery status
 ...  |
 0x83 | unknown (returns "slave timeout" error)
 ...  |

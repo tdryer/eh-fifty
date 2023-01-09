@@ -84,10 +84,10 @@ def test_get_eq_preset_name(device: Device) -> None:
         assert all(c in string.ascii_letters for c in name)
 
 
-def test_get_charge_status(device: Device) -> None:
-    charge_status = device.get_charge_status()
-    assert isinstance(charge_status.is_charging, bool)
-    assert 0 <= charge_status.charge_percent <= 100
+def test_get_battery_status(device: Device) -> None:
+    battery_status = device.get_battery_status()
+    assert isinstance(battery_status.is_charging, bool)
+    assert 0 <= battery_status.charge_percent <= 100
 
 
 def test_balance(device: Device) -> None:
