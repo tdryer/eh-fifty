@@ -25,10 +25,9 @@ supported by [PyUSB][pyusb].
 * [X] get charging status and battery level
 * [X] get headset status
 * [X] get EQ preset name
-* [ ] modify EQ presets
+* [X] get EQ preset parameters
+* [ ] set EQ preset parameters
 * [ ] update firmware
-* [ ] get/set volume (may not be possible)
-* [ ] get/set Dolby status (may not be possible)
 
 ## Example
 
@@ -90,14 +89,14 @@ Type | Description
 ...  |
 0x67 | set active EQ preset
 0x68 | get value of specified slider
-0x69 | unknown (related to EQ presets?)
+0x69 | get EQ preset gain
 0x6A | get noise gate mode
 ...  |
 0x6C | get active EQ preset
 ...  |
 0x6E | get specified EQ preset name
 ...  |
-0x70 | unknown (related to EQ presets?)
+0x70 | get EQ preset frequency and bandwidth
 ...  |
 0x72 | get balance
 0x73 | set default balance

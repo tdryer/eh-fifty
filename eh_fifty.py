@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import struct
 from dataclasses import dataclass
 from enum import Enum
 from itertools import takewhile
@@ -22,6 +23,8 @@ _ENDPOINT_OUT = 0x05
 _INTERFACE = 6
 _TIMEOUT_MS = 3000  # `SAVE_VALUES` response can take over 2 seconds.
 _EQ_PRESETS = [1, 2, 3]
+_EQ_PRESET_BANDS = [1, 2, 3, 4, 5]
+_DB_OFFSET = 12
 
 
 class Device:
@@ -82,6 +85,38 @@ class Device:
         assert resp[1] == preset
         preset_name = takewhile(lambda c: c > 0, resp[2:])
         return bytes(preset_name).decode()
+
+    def get_eq_preset_gain(self, preset: int) -> EQPresetGain:
+        """Get the gain for each band in an EQ preset."""
+        assert preset in _EQ_PRESETS
+        resp = self._request(_CommandType.GET_EQ_PRESET_GAIN, [0x01, preset])
+        assert len(resp) == 12
+        assert resp[0] == _CommandType.GET_EQ_PRESET_GAIN.value
+        assert resp[1] == preset
+        values = list(struct.iter_unpack("<BBBBB", resp[2:]))
+        return EQPresetGain(
+            gain=[db - _DB_OFFSET for db in values[0]],
+            saved_gain=[db - _DB_OFFSET for db in values[1]],
+        )
+
+    def get_eq_preset_freq_and_bw(self, preset: int, band: int) -> EQPresetFreqAndBW:
+        """Get the frequency and bandwidth of a band in an EQ preset."""
+        assert preset in _EQ_PRESETS
+        assert band in _EQ_PRESET_BANDS
+        resp = self._request(
+            _CommandType.GET_EQ_PRESET_FREQ_AND_BW, [0x02, preset, band]
+        )
+        assert len(resp) == 11
+        assert resp[0] == _CommandType.GET_EQ_PRESET_FREQ_AND_BW.value
+        assert resp[1] == preset
+        assert resp[2] == band
+        values = list(value for value, in struct.iter_unpack("<H", resp[3:]))
+        return EQPresetFreqAndBW(
+            bandwidth=values[0],
+            saved_bandwidth=values[1],
+            center_freq=values[2],
+            saved_center_freq=values[3],
+        )
 
     def get_battery_status(self) -> BatteryStatus:
         """Get the battery status."""
@@ -218,9 +253,11 @@ class _CommandType(Enum):
     SET_NOISE_GATE_MODE = 0x64
     SET_ACTIVE_EQ_PRESET = 0x67
     GET_SLIDER_VALUE = 0x68
+    GET_EQ_PRESET_GAIN = 0x69
     GET_NOISE_GATE_MODE = 0x6A
     GET_ACTIVE_EQ_PRESET = 0x6C
     GET_EQ_PRESET_NAME = 0x6E
+    GET_EQ_PRESET_FREQ_AND_BW = 0x70
     GET_BALANCE = 0x72
     SET_DEFAULT_BALANCE = 0x73
     SET_ALERT_VOLUME = 0x76
@@ -233,6 +270,35 @@ class _ResponseStatus(Enum):
 
     ERROR = 0x1
     OK = 0x2
+
+
+@dataclass
+class EQPresetGain:
+    """The gain for each band of an EQ preset.
+
+    Each list contains the gain for the band at the corresponding index.
+
+    Gain is represented in decibels and may vary from -7 to 7 dB.
+    """
+
+    gain: list[int]
+    saved_gain: list[int]
+
+
+@dataclass
+class EQPresetFreqAndBW:
+    """Frequency and bandwidth for single band of an EQ preset.
+
+    Bandwidth is a multiple of the center frequency, which has been quantized
+    to an integer by multiplying it by 4096.
+
+    Center frequency is represented by hertz.
+    """
+
+    bandwidth: int
+    saved_bandwidth: int
+    center_freq: int
+    saved_center_freq: int
 
 
 class NoiseGateMode(Enum):

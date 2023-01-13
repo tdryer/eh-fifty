@@ -9,7 +9,7 @@ import time
 
 import pytest
 
-from eh_fifty import _EQ_PRESETS, Device, NoiseGateMode, SliderType
+from eh_fifty import _EQ_PRESET_BANDS, _EQ_PRESETS, Device, NoiseGateMode, SliderType
 
 # pylint: disable=missing-function-docstring
 
@@ -116,3 +116,25 @@ def test_headset_status(device: Device) -> None:
     headset_status = device.get_headset_status()
     assert isinstance(headset_status.is_docked, bool)
     assert isinstance(headset_status.is_on, bool)
+
+
+def test_get_eq_preset_gain(device: Device) -> None:
+    for preset in _EQ_PRESETS:
+        eq_preset_gain = device.get_eq_preset_gain(preset)
+        for band in _EQ_PRESET_BANDS:
+            assert -7 <= eq_preset_gain.gain[band - 1] <= 7
+            assert -7 <= eq_preset_gain.saved_gain[band - 1] <= 7
+
+
+def test_get_eq_preset_freq_and_bw(device: Device) -> None:
+    for preset in _EQ_PRESETS:
+        for band in _EQ_PRESET_BANDS:
+            eq_preset_freq_and_bw = device.get_eq_preset_freq_and_bw(preset, band)
+            if band in {1, 5}:
+                assert eq_preset_freq_and_bw.bandwidth == 0
+                assert eq_preset_freq_and_bw.saved_bandwidth == 0
+            else:
+                assert 0 <= eq_preset_freq_and_bw.bandwidth <= 4096 * 3
+                assert 0 <= eq_preset_freq_and_bw.saved_bandwidth <= 4096 * 3
+            assert 0 <= eq_preset_freq_and_bw.center_freq <= 15_000
+            assert 0 <= eq_preset_freq_and_bw.saved_center_freq <= 15_000
