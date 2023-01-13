@@ -38,7 +38,7 @@ dependencies = [
 
 [tool.hatch.envs.default.scripts]
 check-isort = "isort --check eh_fifty.py tests.py"
-check-black = "black --check --quiet eh_fifty.py tests.py"
+check-black = "black --check eh_fifty.py tests.py"
 check-pylint = "pylint eh_fifty.py tests.py"
 check-mypy = "mypy --no-error-summary eh_fifty.py tests.py"
 check = [
@@ -55,6 +55,9 @@ disable = "fixme"
 
 [tool.pylint.REPORTS]
 score = "no"
+
+[tool.isort]
+profile = "black"
 
 [tool.mypy]
 strict = true
