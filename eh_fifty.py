@@ -76,15 +76,34 @@ class Device:
         assert resp[0] == _CommandType.SET_ACTIVE_EQ_PRESET.value
         assert resp[1] == preset
 
-    def get_eq_preset_name(self, preset: int) -> str:
-        """Get an EQ preset name."""
+    def get_eq_preset_name(self, preset: int, saved: bool = False) -> str:
+        """Get an EQ preset name.
+
+        If `saved=True`, return the saved name instead of the active name.
+        """
         assert preset in _EQ_PRESETS
-        resp = self._request(_CommandType.GET_EQ_PRESET_NAME, [0x00, preset])
+        resp = self._request(
+            _CommandType.GET_EQ_PRESET_NAME, [0x02, preset, int(saved)]
+        )
         assert len(resp) > 2
         assert resp[0] == _CommandType.GET_EQ_PRESET_NAME.value
         assert resp[1] == preset
         preset_name = takewhile(lambda c: c > 0, resp[2:])
         return bytes(preset_name).decode()
+
+    def set_eq_preset_name(self, preset: int, name: str) -> None:
+        """Set an EQ preset name."""
+        assert preset in _EQ_PRESETS
+        encoded_name = name.encode() + b"\x00"
+        request_len = len(encoded_name) + 2
+        name_len = len(encoded_name)
+        resp = self._request(
+            _CommandType.SET_EQ_PRESET_NAME,
+            [request_len, preset, name_len, *encoded_name],
+        )
+        assert len(resp) == 2
+        assert resp[0] == _CommandType.SET_EQ_PRESET_NAME.value
+        assert resp[1] == preset
 
     def get_eq_preset_gain(self, preset: int) -> EQPresetGain:
         """Get the gain for each band in an EQ preset."""
@@ -256,6 +275,7 @@ class _CommandType(Enum):
     GET_EQ_PRESET_GAIN = 0x69
     GET_NOISE_GATE_MODE = 0x6A
     GET_ACTIVE_EQ_PRESET = 0x6C
+    SET_EQ_PRESET_NAME = 0x6D
     GET_EQ_PRESET_NAME = 0x6E
     GET_EQ_PRESET_FREQ_AND_BW = 0x70
     GET_BALANCE = 0x72

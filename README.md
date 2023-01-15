@@ -93,8 +93,8 @@ Type | Description
 0x6A | get noise gate mode
 ...  |
 0x6C | get active EQ preset
-...  |
-0x6E | get specified EQ preset name
+0x6D | set EQ preset name
+0x6E | get EQ preset name
 ...  |
 0x70 | get EQ preset frequency and bandwidth
 ...  |

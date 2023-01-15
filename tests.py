@@ -77,11 +77,21 @@ def test_active_eq_preset(device: Device) -> None:
     assert device.get_active_eq_preset() == eq_preset
 
 
-def test_get_eq_preset_name(device: Device) -> None:
-    for preset in _EQ_PRESETS:
-        name = device.get_eq_preset_name(preset)
-        assert len(name) > 0
-        assert all(c in string.ascii_letters for c in name)
+def test_eq_preset_name(device: Device) -> None:
+    preset_names = {
+        preset: "".join(
+            random.choice(string.printable) for _ in range(random.randrange(1, 51))
+        )
+        for preset in _EQ_PRESETS
+    }
+    for preset, name in preset_names.items():
+        device.set_eq_preset_name(preset, name)
+        assert device.get_eq_preset_name(preset) == name
+
+    device.save_values()
+
+    for preset, name in preset_names.items():
+        assert device.get_eq_preset_name(preset, saved=True) == name
 
 
 def test_get_battery_status(device: Device) -> None:
