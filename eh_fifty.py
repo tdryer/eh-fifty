@@ -42,7 +42,7 @@ class Device:
     ) -> bytes:
         request = [0x02, request_type.value]
         if payload:
-            request.extend(payload)
+            request.extend([len(payload), *payload])
         assert len(request) <= 64
         LOGGER.debug("Writing %s request\n%s", request_type, hexdump(request))
         assert self._dev.write(_ENDPOINT_OUT, request, _TIMEOUT_MS) == len(request)
@@ -71,7 +71,7 @@ class Device:
     def set_active_eq_preset(self, preset: int) -> None:
         """Set the active EQ preset."""
         assert preset in _EQ_PRESETS
-        resp = self._request(_CommandType.SET_ACTIVE_EQ_PRESET, [0x01, preset])
+        resp = self._request(_CommandType.SET_ACTIVE_EQ_PRESET, [preset])
         assert len(resp) == 2
         assert resp[0] == _CommandType.SET_ACTIVE_EQ_PRESET.value
         assert resp[1] == preset
@@ -82,9 +82,7 @@ class Device:
         If `saved=True`, return the saved name instead of the active name.
         """
         assert preset in _EQ_PRESETS
-        resp = self._request(
-            _CommandType.GET_EQ_PRESET_NAME, [0x02, preset, int(saved)]
-        )
+        resp = self._request(_CommandType.GET_EQ_PRESET_NAME, [preset, int(saved)])
         assert len(resp) > 2
         assert resp[0] == _CommandType.GET_EQ_PRESET_NAME.value
         assert resp[1] == preset
@@ -95,11 +93,9 @@ class Device:
         """Set an EQ preset name."""
         assert preset in _EQ_PRESETS
         encoded_name = name.encode() + b"\x00"
-        request_len = len(encoded_name) + 2
-        name_len = len(encoded_name)
         resp = self._request(
             _CommandType.SET_EQ_PRESET_NAME,
-            [request_len, preset, name_len, *encoded_name],
+            [preset, len(encoded_name), *encoded_name],
         )
         assert len(resp) == 2
         assert resp[0] == _CommandType.SET_EQ_PRESET_NAME.value
@@ -108,7 +104,7 @@ class Device:
     def get_eq_preset_gain(self, preset: int) -> EQPresetGain:
         """Get the gain for each band in an EQ preset."""
         assert preset in _EQ_PRESETS
-        resp = self._request(_CommandType.GET_EQ_PRESET_GAIN, [0x01, preset])
+        resp = self._request(_CommandType.GET_EQ_PRESET_GAIN, [preset])
         assert len(resp) == 12
         assert resp[0] == _CommandType.GET_EQ_PRESET_GAIN.value
         assert resp[1] == preset
@@ -122,9 +118,7 @@ class Device:
         """Get the frequency and bandwidth of a band in an EQ preset."""
         assert preset in _EQ_PRESETS
         assert band in _EQ_PRESET_BANDS
-        resp = self._request(
-            _CommandType.GET_EQ_PRESET_FREQ_AND_BW, [0x02, preset, band]
-        )
+        resp = self._request(_CommandType.GET_EQ_PRESET_FREQ_AND_BW, [preset, band])
         assert len(resp) == 11
         assert resp[0] == _CommandType.GET_EQ_PRESET_FREQ_AND_BW.value
         assert resp[1] == preset
@@ -168,7 +162,7 @@ class Device:
 
         If `saved=True`, return the saved value instead of the active value.
         """
-        resp = self._request(_CommandType.GET_DEFAULT_BALANCE, [0x01, int(saved)])
+        resp = self._request(_CommandType.GET_DEFAULT_BALANCE, [int(saved)])
         assert len(resp) == 1
         assert 0 <= resp[0] <= 255
         return resp[0]
@@ -180,7 +174,7 @@ class Device:
         (100% chat audio).
         """
         assert 0 <= balance <= 255
-        resp = self._request(_CommandType.SET_DEFAULT_BALANCE, [0x01, balance])
+        resp = self._request(_CommandType.SET_DEFAULT_BALANCE, [balance])
         assert len(resp) == 1
         assert resp[0] == _CommandType.SET_DEFAULT_BALANCE.value
 
@@ -198,7 +192,7 @@ class Device:
 
         If `saved=True`, return the saved value instead of the active value.
         """
-        resp = self._request(_CommandType.GET_ALERT_VOLUME, [0x01, int(saved)])
+        resp = self._request(_CommandType.GET_ALERT_VOLUME, [int(saved)])
         assert len(resp) == 1
         assert 0 <= resp[0] <= 100
         return resp[0]
@@ -206,7 +200,7 @@ class Device:
     def set_alert_volume(self, volume_percent: int) -> None:
         """Set the alert volume as percent."""
         assert 0 <= volume_percent <= 100
-        resp = self._request(_CommandType.SET_ALERT_VOLUME, [0x01, volume_percent])
+        resp = self._request(_CommandType.SET_ALERT_VOLUME, [volume_percent])
         assert len(resp) == 1
         assert resp[0] == _CommandType.SET_ALERT_VOLUME.value
 
@@ -223,9 +217,7 @@ class Device:
     def set_noise_gate_mode(self, noise_gate_mode: NoiseGateMode) -> None:
         """Set the noise gate mode."""
         assert isinstance(noise_gate_mode, NoiseGateMode)
-        resp = self._request(
-            _CommandType.SET_NOISE_GATE_MODE, [0x01, noise_gate_mode.value]
-        )
+        resp = self._request(_CommandType.SET_NOISE_GATE_MODE, [noise_gate_mode.value])
         assert len(resp) == 1
         assert resp[0] == noise_gate_mode.value
 
@@ -235,7 +227,7 @@ class Device:
         If `saved=True`, return the saved value instead of the active value.
         """
         assert isinstance(slider_type, SliderType)
-        resp = self._request(_CommandType.GET_SLIDER_VALUE, [0x01, slider_type.value])
+        resp = self._request(_CommandType.GET_SLIDER_VALUE, [slider_type.value])
         assert len(resp) == 4
         assert resp[0] == _CommandType.GET_SLIDER_VALUE.value
         assert resp[1] == slider_type.value
@@ -246,7 +238,7 @@ class Device:
         assert isinstance(slider_type, SliderType)
         assert 0 <= value_percent <= 100
         resp = self._request(
-            _CommandType.SET_SLIDER_VALUE, [0x02, slider_type.value, value_percent]
+            _CommandType.SET_SLIDER_VALUE, [slider_type.value, value_percent]
         )
         assert len(resp) == 2
         assert resp[0] == _CommandType.SET_SLIDER_VALUE.value

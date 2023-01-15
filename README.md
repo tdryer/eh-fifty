@@ -55,7 +55,8 @@ The first byte of a request is `0x02`.
 
 The second byte of a request is a request type (see below).
 
-A variable number of request arguments may follow.
+An optional request payload may follow, prefixed by the length of the payload
+in bytes, not including this byte.
 
 ### Responses
 
