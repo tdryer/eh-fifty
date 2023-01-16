@@ -25,6 +25,8 @@ _TIMEOUT_MS = 3000  # `SAVE_VALUES` response can take over 2 seconds.
 _EQ_PRESETS = [1, 2, 3]
 _EQ_PRESET_BANDS = [1, 2, 3, 4, 5]
 _DB_OFFSET = 12
+_EQ_PRESET_MIN_GAIN = -7
+_EQ_PRESET_MAX_GAIN = 7
 
 
 class Device:
@@ -113,6 +115,22 @@ class Device:
             gain=[db - _DB_OFFSET for db in values[0]],
             saved_gain=[db - _DB_OFFSET for db in values[1]],
         )
+
+    def set_eq_preset_gain(self, preset: int, gain: list[int]) -> None:
+        """Set the gain for each band in an EQ preset."""
+        assert preset in _EQ_PRESETS
+        assert len(gain) == 5
+        assert all(
+            _EQ_PRESET_MIN_GAIN <= band_gain <= _EQ_PRESET_MAX_GAIN
+            for band_gain in gain
+        )
+        resp = self._request(
+            _CommandType.SET_EQ_PRESET_GAIN,
+            [preset, *[band_gain + _DB_OFFSET for band_gain in gain]],
+        )
+        assert len(resp) == 2
+        assert resp[0] == _CommandType.SET_EQ_PRESET_GAIN.value
+        assert resp[1] == preset
 
     def get_eq_preset_freq_and_bw(self, preset: int, band: int) -> EQPresetFreqAndBW:
         """Get the frequency and bandwidth of a band in an EQ preset."""
@@ -261,6 +279,7 @@ class _CommandType(Enum):
     GET_HEADSET_STATUS = 0x54
     SAVE_VALUES = 0x61
     SET_SLIDER_VALUE = 0x62
+    SET_EQ_PRESET_GAIN = 0x63
     SET_NOISE_GATE_MODE = 0x64
     SET_ACTIVE_EQ_PRESET = 0x67
     GET_SLIDER_VALUE = 0x68

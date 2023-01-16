@@ -9,7 +9,15 @@ import time
 
 import pytest
 
-from eh_fifty import _EQ_PRESET_BANDS, _EQ_PRESETS, Device, NoiseGateMode, SliderType
+from eh_fifty import (
+    _EQ_PRESET_BANDS,
+    _EQ_PRESET_MAX_GAIN,
+    _EQ_PRESET_MIN_GAIN,
+    _EQ_PRESETS,
+    Device,
+    NoiseGateMode,
+    SliderType,
+)
 
 # pylint: disable=missing-function-docstring
 
@@ -128,12 +136,22 @@ def test_headset_status(device: Device) -> None:
     assert isinstance(headset_status.is_on, bool)
 
 
-def test_get_eq_preset_gain(device: Device) -> None:
-    for preset in _EQ_PRESETS:
-        eq_preset_gain = device.get_eq_preset_gain(preset)
-        for band in _EQ_PRESET_BANDS:
-            assert -7 <= eq_preset_gain.gain[band - 1] <= 7
-            assert -7 <= eq_preset_gain.saved_gain[band - 1] <= 7
+def test_eq_preset_gain(device: Device) -> None:
+    preset_gain = {
+        preset: [
+            random.randrange(_EQ_PRESET_MIN_GAIN, _EQ_PRESET_MAX_GAIN + 1)
+            for _ in range(5)
+        ]
+        for preset in _EQ_PRESETS
+    }
+    for preset, gain in preset_gain.items():
+        device.set_eq_preset_gain(preset, gain)
+        assert device.get_eq_preset_gain(preset).gain == gain
+
+    device.save_values()
+
+    for preset, gain in preset_gain.items():
+        assert device.get_eq_preset_gain(preset).saved_gain == gain
 
 
 def test_get_eq_preset_freq_and_bw(device: Device) -> None:

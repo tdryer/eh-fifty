@@ -85,7 +85,7 @@ Type | Description
 ...  |
 0x61 | save active values
 0x62 | set value of specified slider
-...  |
+0x63 | set EQ preset gain
 0x64 | set noise gate mode
 ...  |
 0x67 | set active EQ preset
