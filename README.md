@@ -20,13 +20,12 @@ supported by [PyUSB][pyusb].
 * [X] get/set noise gate mode
 * [X] get/set alert volume
 * [X] get/set active EQ preset
+* [X] get/set EQ preset parameters
 * [X] get/set game/voice balance
 * [X] save configuration values
 * [X] get charging status and battery level
 * [X] get headset status
 * [X] get EQ preset name
-* [X] get EQ preset parameters
-* [ ] set EQ preset parameters
 * [ ] update firmware
 
 ## Example
@@ -96,7 +95,7 @@ Type | Description
 0x6C | get active EQ preset
 0x6D | set EQ preset name
 0x6E | get EQ preset name
-...  |
+0x6F | set EQ preset frequency and bandwidth
 0x70 | get EQ preset frequency and bandwidth
 ...  |
 0x72 | get balance

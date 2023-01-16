@@ -11,7 +11,11 @@ import pytest
 
 from eh_fifty import (
     _EQ_PRESET_BANDS,
+    _EQ_PRESET_MAX_BANDWIDTH,
+    _EQ_PRESET_MAX_CENTER_FREQ,
     _EQ_PRESET_MAX_GAIN,
+    _EQ_PRESET_MIN_BANDWIDTH,
+    _EQ_PRESET_MIN_CENTER_FREQ,
     _EQ_PRESET_MIN_GAIN,
     _EQ_PRESETS,
     Device,
@@ -154,15 +158,34 @@ def test_eq_preset_gain(device: Device) -> None:
         assert device.get_eq_preset_gain(preset).saved_gain == gain
 
 
-def test_get_eq_preset_freq_and_bw(device: Device) -> None:
-    for preset in _EQ_PRESETS:
-        for band in _EQ_PRESET_BANDS:
-            eq_preset_freq_and_bw = device.get_eq_preset_freq_and_bw(preset, band)
-            if band in {1, 5}:
-                assert eq_preset_freq_and_bw.bandwidth == 0
-                assert eq_preset_freq_and_bw.saved_bandwidth == 0
-            else:
-                assert 0 <= eq_preset_freq_and_bw.bandwidth <= 4096 * 3
-                assert 0 <= eq_preset_freq_and_bw.saved_bandwidth <= 4096 * 3
-            assert 0 <= eq_preset_freq_and_bw.center_freq <= 15_000
-            assert 0 <= eq_preset_freq_and_bw.saved_center_freq <= 15_000
+def test_eq_preset_freq_and_bw(device: Device) -> None:
+    preset_freq_and_bw = {
+        preset: {
+            band: (
+                random.randrange(
+                    _EQ_PRESET_MIN_CENTER_FREQ, _EQ_PRESET_MAX_CENTER_FREQ + 1
+                ),
+                0
+                if band in {1, 5}
+                else random.randrange(
+                    _EQ_PRESET_MIN_BANDWIDTH, _EQ_PRESET_MAX_BANDWIDTH + 1
+                ),
+            )
+            for band in _EQ_PRESET_BANDS
+        }
+        for preset in _EQ_PRESETS
+    }
+    for preset, bands in preset_freq_and_bw.items():
+        for band, (center_freq, bandwidth) in bands.items():
+            device.set_eq_preset_freq_and_bw(preset, band, center_freq, bandwidth)
+            freq_and_bw = device.get_eq_preset_freq_and_bw(preset, band)
+            assert freq_and_bw.center_freq == center_freq
+            assert freq_and_bw.bandwidth == bandwidth
+
+    device.save_values()
+
+    for preset, bands in preset_freq_and_bw.items():
+        for band, (center_freq, bandwidth) in bands.items():
+            freq_and_bw = device.get_eq_preset_freq_and_bw(preset, band)
+            assert freq_and_bw.saved_center_freq == center_freq
+            assert freq_and_bw.saved_bandwidth == bandwidth

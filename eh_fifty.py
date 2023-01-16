@@ -27,6 +27,10 @@ _EQ_PRESET_BANDS = [1, 2, 3, 4, 5]
 _DB_OFFSET = 12
 _EQ_PRESET_MIN_GAIN = -7
 _EQ_PRESET_MAX_GAIN = 7
+_EQ_PRESET_MIN_CENTER_FREQ = 80
+_EQ_PRESET_MAX_CENTER_FREQ = 15_000
+_EQ_PRESET_MIN_BANDWIDTH = int(4096 * 0.1)
+_EQ_PRESET_MAX_BANDWIDTH = int(4096 * 3.0)
 
 
 class Device:
@@ -148,6 +152,32 @@ class Device:
             center_freq=values[2],
             saved_center_freq=values[3],
         )
+
+    def set_eq_preset_freq_and_bw(
+        self, preset: int, band: int, center_freq: int, bandwidth: int
+    ) -> None:
+        """Set the frequency and bandwidth of a band in an EQ preset."""
+        assert preset in _EQ_PRESETS
+        assert band in _EQ_PRESET_BANDS
+        assert _EQ_PRESET_MIN_CENTER_FREQ <= center_freq <= _EQ_PRESET_MAX_CENTER_FREQ
+        if band in {1, 5}:
+            assert bandwidth == 0
+        else:
+            assert _EQ_PRESET_MIN_BANDWIDTH <= bandwidth <= _EQ_PRESET_MAX_BANDWIDTH
+        resp = self._request(
+            _CommandType.SET_EQ_PRESET_FREQ_AND_BW,
+            [
+                preset,
+                band,
+                *struct.pack("<H", bandwidth),
+                *struct.pack("<H", center_freq),
+            ],
+        )
+        assert len(resp) == 4
+        assert resp[0] == _CommandType.SET_EQ_PRESET_FREQ_AND_BW.value
+        assert resp[1] == preset
+        assert resp[2] == band
+        assert resp[3] == 0
 
     def get_battery_status(self) -> BatteryStatus:
         """Get the battery status."""
@@ -288,6 +318,7 @@ class _CommandType(Enum):
     GET_ACTIVE_EQ_PRESET = 0x6C
     SET_EQ_PRESET_NAME = 0x6D
     GET_EQ_PRESET_NAME = 0x6E
+    SET_EQ_PRESET_FREQ_AND_BW = 0x6F
     GET_EQ_PRESET_FREQ_AND_BW = 0x70
     GET_BALANCE = 0x72
     SET_DEFAULT_BALANCE = 0x73
