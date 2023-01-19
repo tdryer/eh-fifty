@@ -61,10 +61,15 @@ in bytes, not including this byte.
 
 The first byte of a response is `0x02`.
 
-The second byte of a response is `0x02` for "success" or `0x01` for "error".
+The second byte of a response may be either:
 
-The third byte of a response is the remaining length of the response measured
-in bytes, not including this byte.
+* `0x00` for "no response"
+* `0x01` for "error"
+* `0x02` for "success"
+
+Unless the second byte represents "no response", the third byte of a response
+is the remaining length of the response measured in bytes, not including this
+byte.
 
 ### Saved Values
 
@@ -101,9 +106,11 @@ Type | Description
 0x72 | get balance
 0x73 | set default balance
 ...  |
+0x75 | set brightness (ineffective)
 0x76 | set alert volume
 0x77 | get default balance
 ...  |
+0x79 | get brightness
 0x7A | get alert volume
 ...  |
 0x7C | get battery status

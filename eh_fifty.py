@@ -63,7 +63,7 @@ class Device:
             raise
         LOGGER.debug("Received %s response\n%s", request_type, hexdump(resp))
         assert resp[0] == 0x02
-        assert resp[1] == _ResponseStatus.OK.value
+        assert resp[1] in {_ResponseStatus.NO_RESPONSE.value, _ResponseStatus.OK.value}
         length = resp[2]
         return bytes(resp[3 : 3 + length])
 
@@ -330,8 +330,9 @@ class _CommandType(Enum):
 
 class _ResponseStatus(Enum):
 
-    ERROR = 0x1
-    OK = 0x2
+    NO_RESPONSE = 0
+    ERROR = 1
+    OK = 2
 
 
 @dataclass
