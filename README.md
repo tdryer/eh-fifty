@@ -105,11 +105,11 @@ Type | Description
 ...  |
 0x72 | get balance
 0x73 | set default balance
-...  |
+0x74 | set auto shutoff timeout (ineffective)
 0x75 | set brightness (ineffective)
 0x76 | set alert volume
 0x77 | get default balance
-...  |
+0x78 | get auto shutoff timeout
 0x79 | get brightness
 0x7A | get alert volume
 ...  |
