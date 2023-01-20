@@ -18,6 +18,7 @@ from eh_fifty import (
     _EQ_PRESET_MIN_CENTER_FREQ,
     _EQ_PRESET_MIN_GAIN,
     _EQ_PRESETS,
+    _MIC_EQ_PRESETS,
     Device,
     NoiseGateMode,
     SliderType,
@@ -55,6 +56,19 @@ def test_noise_gate_mode(device: Device) -> None:
 
     assert device.get_noise_gate_mode() == active_noise_gate_mode
     assert device.get_noise_gate_mode(saved=True) == saved_noise_gate_mode
+
+
+def test_mic_eq(device: Device) -> None:
+    saved_mic_eq = random.choice(_MIC_EQ_PRESETS)
+    device.set_mic_eq(saved_mic_eq)
+
+    device.save_values()
+
+    active_mic_eq = random.choice(_MIC_EQ_PRESETS)
+    device.set_mic_eq(active_mic_eq)
+
+    assert device.get_mic_eq() == active_mic_eq
+    assert device.get_mic_eq(saved=True) == saved_mic_eq
 
 
 def test_sliders(device: Device) -> None:

@@ -31,6 +31,7 @@ _EQ_PRESET_MIN_CENTER_FREQ = 80
 _EQ_PRESET_MAX_CENTER_FREQ = 15_000
 _EQ_PRESET_MIN_BANDWIDTH = int(4096 * 0.1)
 _EQ_PRESET_MAX_BANDWIDTH = int(4096 * 3.0)
+_MIC_EQ_PRESETS = [0, 1, 2]
 
 
 class Device:
@@ -269,6 +270,25 @@ class Device:
         assert len(resp) == 1
         assert resp[0] == noise_gate_mode.value
 
+    def get_mic_eq(self, saved: bool = False) -> int:
+        """Get the microphone EQ preset.
+
+        The valid presets are 0, 1, and 2. Their meanings are unknown.
+
+        If `saved=True`, return the saved value instead of the active value.
+        """
+        resp = self._request(_CommandType.GET_MIC_EQ, [int(saved)])
+        assert len(resp) == 1
+        assert resp[0] in _MIC_EQ_PRESETS
+        return resp[0]
+
+    def set_mic_eq(self, mic_eq: int) -> None:
+        """Set the microphone EQ preset."""
+        assert mic_eq in _MIC_EQ_PRESETS
+        resp = self._request(_CommandType.SET_MIC_EQ, [mic_eq])
+        assert len(resp) == 1
+        assert resp[0] == _CommandType.SET_MIC_EQ.value
+
     def get_slider_value(self, slider_type: SliderType, saved: bool = False) -> int:
         """Get slider slider value.
 
@@ -320,11 +340,13 @@ class _CommandType(Enum):
     GET_EQ_PRESET_NAME = 0x6E
     SET_EQ_PRESET_FREQ_AND_BW = 0x6F
     GET_EQ_PRESET_FREQ_AND_BW = 0x70
+    SET_MIC_EQ = 0x71
     GET_BALANCE = 0x72
     SET_DEFAULT_BALANCE = 0x73
     SET_ALERT_VOLUME = 0x76
     GET_DEFAULT_BALANCE = 0x77
     GET_ALERT_VOLUME = 0x7A
+    GET_MIC_EQ = 0x7B
     GET_BATTERY_STATUS = 0x7C
 
 

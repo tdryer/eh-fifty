@@ -16,6 +16,7 @@ supported by [PyUSB][pyusb].
 ## Features
 
 * [X] get/set microphone level
+* [X] get/set microphone EQ preset
 * [X] get/set side tone volume
 * [X] get/set noise gate mode
 * [X] get/set alert volume
@@ -102,7 +103,7 @@ Type | Description
 0x6E | get EQ preset name
 0x6F | set EQ preset frequency and bandwidth
 0x70 | get EQ preset frequency and bandwidth
-...  |
+0x71 | set microphone EQ preset
 0x72 | get balance
 0x73 | set default balance
 0x74 | set auto shutoff timeout (ineffective)
@@ -112,7 +113,7 @@ Type | Description
 0x78 | get auto shutoff timeout
 0x79 | get brightness
 0x7A | get alert volume
-...  |
+0x7B | get microphone EQ preset
 0x7C | get battery status
 ...  |
 0x83 | unknown (returns "slave timeout" error)
