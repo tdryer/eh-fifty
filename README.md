@@ -42,7 +42,7 @@ Retrieve the current battery charge:
 
 Create a udev rule to allow non-root users to access the USB device:
 
-    echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="9886", ATTR{idProduct}=="002c", MODE="0666"' | \
+    echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="9886", ATTR{idProduct}=="002c", MODE:="0666"' | \
         sudo tee /etc/udev/rules.d/50-astro-a50.rules
 
 Re-plug your base station to apply the new rule.
