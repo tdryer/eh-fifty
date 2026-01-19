@@ -41,7 +41,9 @@ Retrieve the current battery charge:
 
 ## Resource Management
 
-The `Device` class supports context management for automatic cleanup:
+The `Device` class is a singleton—multiple calls to `Device()` return the same
+instance. The context manager uses reference counting, so the device is only
+closed when the last context manager exits:
 
     with Device() as device:
         # use device...
@@ -56,6 +58,9 @@ For long-running applications, you can also manage the lifecycle manually:
             # ...
     finally:
         device.close()
+
+Note: Calling `close()` directly always closes the device immediately,
+regardless of reference count.
 
 ## Non-root access
 
