@@ -37,7 +37,21 @@ _MIC_EQ_PRESETS = [0, 1, 2]
 class Device:
     """Astro A50 gen 4 USB device."""
 
+    _instance: "Device | None" = None
+    _ref_count: int = 0
+
+    def __new__(cls) -> "Device":
+        if cls._instance is not None and cls._instance._dev is not None:
+            cls._ref_count += 1
+            return cls._instance
+        instance = super().__new__(cls)
+        cls._instance = instance
+        cls._ref_count = 1
+        return instance
+
     def __init__(self) -> None:
+        if getattr(self, "_dev", None) is not None:
+            return
         self._dev = usb.core.find(idVendor=_VENDOR, idProduct=_PRODUCT)
         if self._dev is None:
             raise DeviceNotConnected
@@ -50,18 +64,23 @@ class Device:
         """Release the device and reattach kernel driver."""
         if self._dev is not None and self._detached_driver:
             try:
+                usb.util.release_interface(self._dev, _INTERFACE)
                 self._dev.attach_kernel_driver(_INTERFACE)
             except Exception:
                 pass
             self._detached_driver = False
+        self._dev = None
+        Device._ref_count = 0
 
     def __enter__(self) -> "Device":
         """Enter context manager."""
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
-        """Exit context manager, ensuring device is closed."""
-        self.close()
+        """Exit context manager, closing if last reference."""
+        Device._ref_count -= 1
+        if Device._ref_count <= 0:
+            self.close()
         return False
 
     def _request(
