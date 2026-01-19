@@ -62,13 +62,18 @@ class Device:
 
     def close(self) -> None:
         """Release the device and reattach kernel driver."""
-        if self._dev is not None and self._detached_driver:
+        if self._dev is not None:
             try:
                 usb.util.release_interface(self._dev, _INTERFACE)
-                self._dev.attach_kernel_driver(_INTERFACE)
             except Exception:
                 pass
-            self._detached_driver = False
+            if self._detached_driver:
+                try:
+                    self._dev.attach_kernel_driver(_INTERFACE)
+                except Exception:
+                    pass
+                self._detached_driver = False
+            usb.util.dispose_resources(self._dev)
         self._dev = None
         Device._ref_count = 0
 
@@ -105,8 +110,8 @@ class Device:
         assert resp[0] == 0x02
         assert resp[1] in {_ResponseStatus.NO_RESPONSE.value, _ResponseStatus.OK.value}
         length = resp[2]
-        # Validate length is within USB frame bounds (64 byte frame - 3 header bytes)
-        assert length <= 61, f"Invalid response length: {length}"
+        # Cap length at actual response size (some firmware reports incorrect length)
+        length = min(length, len(resp) - 3)
         return bytes(resp[3 : 3 + length])
 
     def get_active_eq_preset(self) -> int:
