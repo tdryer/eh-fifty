@@ -148,5 +148,5 @@ Bump the version in `eh_fifty.py` and run the following:
     git commit -am "Bump version"
     git tag "${VERSION}"
     git push --tags
-    hatch build -t sdist
-    uv publish dist/*.tar.gz
+    hatch build
+    uv publish dist/*.tar.gz dist/*.whl
