@@ -6,6 +6,7 @@ WARNING: Running these tests will randomize your device's configuration.
 import random
 import string
 import time
+from typing import Generator
 
 import pytest
 
@@ -28,8 +29,9 @@ from eh_fifty import (
 
 
 @pytest.fixture(name="device", scope="session")
-def _device() -> Device:
-    return Device()
+def _device() -> Generator[Device, None, None]:
+    with Device() as device:
+        yield device
 
 
 def test_alert_volume(device: Device) -> None:
@@ -179,10 +181,12 @@ def test_eq_preset_freq_and_bw(device: Device) -> None:
                 random.randrange(
                     _EQ_PRESET_MIN_CENTER_FREQ, _EQ_PRESET_MAX_CENTER_FREQ + 1
                 ),
-                0
-                if band in {1, 5}
-                else random.randrange(
-                    _EQ_PRESET_MIN_BANDWIDTH, _EQ_PRESET_MAX_BANDWIDTH + 1
+                (
+                    0
+                    if band in {1, 5}
+                    else random.randrange(
+                        _EQ_PRESET_MIN_BANDWIDTH, _EQ_PRESET_MAX_BANDWIDTH + 1
+                    )
                 ),
             )
             for band in _EQ_PRESET_BANDS

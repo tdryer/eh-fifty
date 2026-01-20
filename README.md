@@ -34,9 +34,28 @@ supported by [PyUSB][pyusb].
 Retrieve the current battery charge:
 
     from eh_fifty import Device
+
+    with Device() as device:
+        battery_status = device.get_battery_status()
+        print(f"Battery: {battery_status.charge_percent}%")
+
+## Resource Management
+
+The `Device` class supports context management for automatic cleanup:
+
+    with Device() as device:
+        # use device...
+    # kernel driver automatically reattached
+
+For long-running applications, you can also manage the lifecycle manually:
+
     device = Device()
-    battery_status = device.get_battery_status()
-    print(f"Battery: {battery_status.charge_percent}%")
+    try:
+        while True:
+            status = device.get_headset_status()
+            # ...
+    finally:
+        device.close()
 
 ## Non-root access
 
