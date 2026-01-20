@@ -140,3 +140,13 @@ Type | Description
 0xDA | unknown
 ...  |
 0xD6 | unknown
+
+## Release Process
+
+Bump the version in `eh_fifty.py` and run the following:
+
+    git commit -am "Bump version"
+    git tag "${VERSION}"
+    git push --tags
+    hatch build -t sdist
+    uv publish dist/*.tar.gz
