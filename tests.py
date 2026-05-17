@@ -1,14 +1,13 @@
 """Test interaction with device.
 
-WARNING: Running these tests will randomize your device's configuration.
+The session-scoped fixture in ``conftest.py`` snapshots the device's
+configuration before the test session and restores it afterward, so running
+``pytest`` does not clobber the user's saved settings.
 """
 
 import random
 import string
 import time
-from typing import Generator
-
-import pytest
 
 from eh_fifty import (
     _EQ_PRESET_BANDS,
@@ -20,18 +19,14 @@ from eh_fifty import (
     _EQ_PRESET_MIN_GAIN,
     _EQ_PRESETS,
     _MIC_EQ_PRESETS,
+    _PRODUCT,
+    _VENDOR,
     Device,
     NoiseGateMode,
     SliderType,
 )
 
 # pylint: disable=missing-function-docstring
-
-
-@pytest.fixture(name="device", scope="session")
-def _device() -> Generator[Device, None, None]:
-    with Device() as device:
-        yield device
 
 
 def test_alert_volume(device: Device) -> None:
@@ -207,3 +202,24 @@ def test_eq_preset_freq_and_bw(device: Device) -> None:
             freq_and_bw = device.get_eq_preset_freq_and_bw(preset, band)
             assert freq_and_bw.saved_center_freq == center_freq
             assert freq_and_bw.saved_bandwidth == bandwidth
+
+
+def test_device_info(device: Device) -> None:
+    info = device.get_device_info()
+    assert info.vendor_id == _VENDOR
+    assert info.product_id == _PRODUCT
+
+
+def test_base_firmware_version(device: Device) -> None:
+    version = device.get_base_firmware_version()
+    assert version.major > 0
+    assert version.minor >= 0
+    assert str(version) == f"{version.major}.{version.minor}"
+
+
+def test_headset_firmware_version(device: Device) -> None:
+    version = device.get_headset_firmware_version()
+    assert version.major > 0
+    assert version.minor >= 0
+
+
