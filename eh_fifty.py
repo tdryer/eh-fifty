@@ -102,6 +102,49 @@ class Device:
         length = min(length, len(resp) - 3)
         return bytes(resp[3 : 3 + length])
 
+    def get_device_info(self) -> DeviceInfo:
+        """Get the USB IDs of the base station.
+
+        `vendor_id` and `product_id` should match the constants this library
+        targets.
+        """
+        resp = self._request(_CommandType.GET_DEVICE_INFO)
+        assert len(resp) >= 8
+        return DeviceInfo(
+            vendor_id=int.from_bytes(resp[4:6], "little"),
+            product_id=int.from_bytes(resp[6:8], "little"),
+        )
+
+    def get_base_firmware_version(self) -> FirmwareVersion:
+        """Get the firmware version of the base station.
+
+        Returns the version as `{major}.{minor}`, matching the format shown
+        by Astro Command Center.
+        """
+        info = self._request(_CommandType.GET_DEVICE_INFO)
+        assert len(info) >= 25
+        minor = self._request(_CommandType.GET_BASE_FIRMWARE_MINOR)
+        assert len(minor) >= 1
+        return FirmwareVersion(
+            major=int.from_bytes(info[21:25], "little"),
+            minor=minor[0],
+        )
+
+    def get_headset_firmware_version(self) -> FirmwareVersion:
+        """Get the firmware version of the wireless headset.
+
+        Returns the version as `{major}.{minor}`, matching the format shown
+        by Astro Command Center.
+        """
+        major = self._request(_CommandType.GET_HEADSET_FIRMWARE_MAJOR, [0x0A])
+        assert len(major) >= 4
+        minor = self._request(_CommandType.GET_HEADSET_FIRMWARE_MINOR, [0x0A])
+        assert len(minor) >= 1
+        return FirmwareVersion(
+            major=int.from_bytes(major[:4], "little"),
+            minor=minor[0],
+        )
+
     def get_active_eq_preset(self) -> int:
         """Get the active EQ preset."""
         resp = self._request(_CommandType.GET_ACTIVE_EQ_PRESET)
@@ -360,7 +403,9 @@ class DeviceNotConnected(Exception):
 
 class _CommandType(Enum):
 
+    GET_DEVICE_INFO = 0x03
     GET_HEADSET_STATUS = 0x54
+    GET_BASE_FIRMWARE_MINOR = 0x55
     SAVE_VALUES = 0x61
     SET_SLIDER_VALUE = 0x62
     SET_EQ_PRESET_GAIN = 0x63
@@ -382,6 +427,8 @@ class _CommandType(Enum):
     GET_ALERT_VOLUME = 0x7A
     GET_MIC_EQ = 0x7B
     GET_BATTERY_STATUS = 0x7C
+    GET_HEADSET_FIRMWARE_MINOR = 0xD6
+    GET_HEADSET_FIRMWARE_MAJOR = 0xDA
 
 
 class _ResponseStatus(Enum):
@@ -438,6 +485,25 @@ class SliderType(Enum):
     STREAM_PORT_MIX_AUX = 0x03
     MIC = 0x04
     SIDE_TONE = 0x05
+
+
+@dataclass
+class DeviceInfo:
+    """USB identity of the base station."""
+
+    vendor_id: int
+    product_id: int
+
+
+@dataclass
+class FirmwareVersion:
+    """Firmware version expressed as `{major}.{minor}`."""
+
+    major: int
+    minor: int
+
+    def __str__(self) -> str:
+        return f"{self.major}.{self.minor}"
 
 
 @dataclass
