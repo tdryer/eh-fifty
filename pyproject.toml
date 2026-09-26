@@ -46,7 +46,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests.py" = ["D103"]
+"test_eh_fifty.py" = ["D103"]
 
 [tool.mypy]
 strict = true

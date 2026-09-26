@@ -1,4 +1,4 @@
-sources := "eh_fifty.py tests.py conftest.py"
+sources := "eh_fifty.py test_eh_fifty.py conftest.py"
 
 # list recipes
 default:
@@ -31,4 +31,4 @@ check: check-format check-lint check-mypy
 
 # run tests
 test *args:
-    uv run pytest --verbose tests.py {{args}}
+    uv run pytest --verbose test_eh_fifty.py {{args}}
