@@ -82,7 +82,7 @@ class Device:
         if payload:
             request.extend([len(payload), *payload])
         assert len(request) <= 64
-        LOGGER.debug("Writing %s request\n%s", request_type, _HexBytes(bytes(request)))
+        LOGGER.debug("Writing %s request\n%s", request_type, _HexBytes(request))
         assert self._dev.write(_ENDPOINT_OUT, request, _TIMEOUT_MS) == len(request)
 
         try:
@@ -526,13 +526,13 @@ class HeadsetStatus:
 
 @dataclass
 class _HexBytes:
-    """Bytes shown as a hexdump in debug logs, only formatted if emitted."""
+    """Byte sequences shown as hexdumps in debug logs, only formatted if emitted."""
 
-    data: bytes
+    data: bytes | list[int]
 
     def __str__(self) -> str:
         lines = []
-        previous = b""
+        previous = self.data[:0]
         collapsed = False
         for offset in range(0, len(self.data), 16):
             chunk = self.data[offset : offset + 16]
