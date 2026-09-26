@@ -32,7 +32,7 @@ from eh_fifty import (
 
 
 @dataclass
-class _Snapshot:  # pylint: disable=too-many-instance-attributes
+class _Snapshot:
     alert_volume: tuple[int, int]
     noise_gate_mode: tuple[NoiseGateMode, NoiseGateMode]
     mic_eq: tuple[int, int]

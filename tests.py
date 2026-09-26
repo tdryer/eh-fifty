@@ -26,8 +26,6 @@ from eh_fifty import (
     SliderType,
 )
 
-# pylint: disable=missing-function-docstring
-
 
 def test_alert_volume(device: Device) -> None:
     saved_alert_volume = random.randrange(0, 100)

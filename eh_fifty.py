@@ -62,7 +62,7 @@ class Device:
             usb.util.dispose_resources(self._dev)
         self._dev = None
 
-    def __enter__(self) -> "Device":
+    def __enter__(self) -> Device:
         """Enter context manager."""
         return self
 
@@ -222,7 +222,7 @@ class Device:
         assert resp[0] == _CommandType.GET_EQ_PRESET_FREQ_AND_BW.value
         assert resp[1] == preset
         assert resp[2] == band
-        values = list(value for (value,) in struct.iter_unpack("<H", resp[3:]))
+        values = [value for (value,) in struct.iter_unpack("<H", resp[3:])]
         return EQPresetFreqAndBW(
             bandwidth=values[0],
             saved_bandwidth=values[1],
