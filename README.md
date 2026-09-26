@@ -141,6 +141,12 @@ Type | Description
 ...  |
 0xDA | get headset firmware major version (requires argument `0x0A`)
 
+## Development
+
+`uv` and `just` are required.
+
+See `just`.
+
 ## Release Process
 
 Bump the version in `eh_fifty.py` and run the following:
@@ -148,5 +154,5 @@ Bump the version in `eh_fifty.py` and run the following:
     git commit -am "Bump version"
     git tag "${VERSION}"
     git push --follow-tags
-    hatch build
+    uv build
     uv publish dist/eh_fifty-${VERSION}*.{tar.gz,whl}

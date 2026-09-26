@@ -20,20 +20,17 @@ dynamic = ["version"]
 "Homepage" = "https://github.com/tdryer/eh-fifty"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
 
-[tool.hatch.build.targets.sdist]
-only-include = ["eh_fifty.py"]
+[tool.setuptools]
+py-modules = ["eh_fifty"]
 
-[tool.hatch.build.targets.wheel]
-only-include = ["eh_fifty.py"]
+[tool.setuptools.dynamic]
+version = {attr = "eh_fifty.__version__"}
 
-[tool.hatch.version]
-path = "eh_fifty.py"
-
-[tool.hatch.envs.default]
-dependencies = [
+[dependency-groups]
+dev = [
   "black",
   "isort",
   "mypy",
@@ -41,19 +38,8 @@ dependencies = [
   "pytest",
 ]
 
-[tool.hatch.envs.default.scripts]
-check-isort = "isort --check eh_fifty.py tests.py conftest.py"
-check-black = "black --check eh_fifty.py tests.py conftest.py"
-check-pylint = "pylint eh_fifty.py tests.py conftest.py"
-check-mypy = "mypy --no-error-summary eh_fifty.py tests.py conftest.py"
-check = [
-  "check-isort",
-  "check-black",
-  "check-pylint",
-  "check-mypy",
-]
-test = "pytest --verbose tests.py {args:}"
-clean = "rm -rf venv __pycache__ *.egg-info dist .mypy_cache .pytest_cache"
+[tool.uv.dependency-groups]
+dev = {requires-python = ">=3.10"}
 
 [tool.pylint.'MESSAGES CONTROL']
 disable = ["fixme", "too-many-public-methods"]
