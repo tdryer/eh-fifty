@@ -10,9 +10,9 @@ sync:
 check-isort:
     uv run isort --check eh_fifty.py tests.py conftest.py
 
-# run black check
-check-black:
-    uv run black --check eh_fifty.py tests.py conftest.py
+# run ruff format check
+check-ruff-format:
+    uv run ruff format --check eh_fifty.py tests.py conftest.py
 
 # run pylint check
 check-pylint:
@@ -23,7 +23,7 @@ check-mypy:
     uv run mypy --no-error-summary eh_fifty.py tests.py conftest.py
 
 # run all checks
-check: check-isort check-black check-pylint check-mypy
+check: check-isort check-ruff-format check-pylint check-mypy
 
 # run tests
 test *args:

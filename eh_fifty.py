@@ -222,7 +222,7 @@ class Device:
         assert resp[0] == _CommandType.GET_EQ_PRESET_FREQ_AND_BW.value
         assert resp[1] == preset
         assert resp[2] == band
-        values = list(value for value, in struct.iter_unpack("<H", resp[3:]))
+        values = list(value for (value,) in struct.iter_unpack("<H", resp[3:]))
         return EQPresetFreqAndBW(
             bandwidth=values[0],
             saved_bandwidth=values[1],
@@ -401,7 +401,6 @@ class DeviceNotConnected(Exception):
 
 
 class _CommandType(Enum):
-
     GET_DEVICE_INFO = 0x03
     GET_HEADSET_STATUS = 0x54
     GET_BASE_FIRMWARE_MINOR = 0x55
@@ -431,7 +430,6 @@ class _CommandType(Enum):
 
 
 class _ResponseStatus(Enum):
-
     NO_RESPONSE = 0
     ERROR = 1
     OK = 2

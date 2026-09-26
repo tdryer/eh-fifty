@@ -31,11 +31,11 @@ version = {attr = "eh_fifty.__version__"}
 
 [dependency-groups]
 dev = [
-  "black",
   "isort",
   "mypy",
   "pylint",
   "pytest",
+  "ruff>=0.16.9",
 ]
 
 [tool.uv.dependency-groups]
