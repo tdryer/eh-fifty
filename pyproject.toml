@@ -2,7 +2,6 @@
 name = "eh-fifty"
 dependencies = [
   "pyusb>=1.2.1,<2",
-  "simple-hexdump==0.0.1",
 ]
 authors = [
   { name="Tom Dryer", email="tomdryer.com@gmail.com" },
@@ -70,8 +69,4 @@ strict = true
 
 [[tool.mypy.overrides]]
 module = "usb.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = "hexdump"
 ignore_missing_imports = true
