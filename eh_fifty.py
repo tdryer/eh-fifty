@@ -11,7 +11,6 @@ from types import TracebackType
 
 import usb.core
 import usb.util
-from hexdump import hexdump
 
 __version__ = "0.4.0"
 
@@ -83,7 +82,7 @@ class Device:
         if payload:
             request.extend([len(payload), *payload])
         assert len(request) <= 64
-        LOGGER.debug("Writing %s request\n%s", request_type, hexdump(request))
+        LOGGER.debug("Writing %s request\n%s", request_type, _HexBytes(bytes(request)))
         assert self._dev.write(_ENDPOINT_OUT, request, _TIMEOUT_MS) == len(request)
 
         try:
@@ -94,7 +93,7 @@ class Device:
             LOGGER.warning("Resetting device due to timeout")
             self._dev.reset()
             raise
-        LOGGER.debug("Received %s response\n%s", request_type, hexdump(resp))
+        LOGGER.debug("Received %s response\n%s", request_type, _HexBytes(resp))
         assert resp[0] == 0x02
         assert resp[1] in {_ResponseStatus.NO_RESPONSE.value, _ResponseStatus.OK.value}
         length = resp[2]
@@ -523,3 +522,29 @@ class HeadsetStatus:
 
     is_on: bool
     is_docked: bool
+
+
+@dataclass
+class _HexBytes:
+    """Bytes shown as a hexdump in debug logs, only formatted if emitted."""
+
+    data: bytes
+
+    def __str__(self) -> str:
+        lines = []
+        previous = b""
+        collapsed = False
+        for offset in range(0, len(self.data), 16):
+            chunk = self.data[offset : offset + 16]
+            if chunk == previous:
+                if not collapsed:
+                    lines.append("*")
+                    collapsed = True
+                continue
+            previous, collapsed = chunk, False
+            left = " ".join(f"{byte:02x}" for byte in chunk[:8])
+            right = " ".join(f"{byte:02x}" for byte in chunk[8:])
+            text = "".join(chr(byte) if 32 <= byte < 127 else "." for byte in chunk)
+            lines.append(f"{offset:08x}  {left:23}  {right:23}  |{text:16}|")
+        lines.append(f"{len(self.data):08x}")
+        return "\n".join(lines)
