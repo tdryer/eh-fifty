@@ -1,3 +1,5 @@
+sources := "eh_fifty.py tests.py conftest.py"
+
 # list recipes
 default:
     just --list
@@ -6,24 +8,26 @@ default:
 sync:
     uv sync
 
-# run isort check
-check-isort:
-    uv run isort --check eh_fifty.py tests.py conftest.py
+# format imports and code with ruff
+format:
+    uv run ruff check --select I --fix {{sources}}
+    uv run ruff format {{sources}}
 
-# run ruff format check
-check-ruff-format:
-    uv run ruff format --check eh_fifty.py tests.py conftest.py
+# check import order and code formatting with ruff
+check-format:
+    uv run ruff check --select I {{sources}}
+    uv run ruff format --check {{sources}}
 
 # run pylint check
 check-pylint:
-    uv run pylint eh_fifty.py tests.py conftest.py
+    uv run pylint {{sources}}
 
 # run mypy check
 check-mypy:
-    uv run mypy --no-error-summary eh_fifty.py tests.py conftest.py
+    uv run mypy --no-error-summary {{sources}}
 
 # run all checks
-check: check-isort check-ruff-format check-pylint check-mypy
+check: check-format check-pylint check-mypy
 
 # run tests
 test *args:

@@ -31,11 +31,10 @@ version = {attr = "eh_fifty.__version__"}
 
 [dependency-groups]
 dev = [
-  "isort",
   "mypy",
   "pylint",
   "pytest",
-  "ruff>=0.16.9",
+  "ruff>=0.16.8",
 ]
 
 [tool.uv.dependency-groups]
@@ -46,9 +45,6 @@ disable = ["fixme", "too-many-public-methods"]
 
 [tool.pylint.REPORTS]
 score = "no"
-
-[tool.isort]
-profile = "black"
 
 [tool.mypy]
 strict = true
