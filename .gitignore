@@ -6,4 +6,3 @@ dist
 local
 venv
 .venv
-uv.lock
