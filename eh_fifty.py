@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import struct
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from itertools import takewhile
 from types import TracebackType
@@ -95,24 +96,34 @@ class Device:
             raise
         LOGGER.debug("Received %s response\n%s", request_type, _HexBytes(resp))
         assert resp[0] == 0x02
-        assert resp[1] in {_ResponseStatus.NO_RESPONSE.value, _ResponseStatus.OK.value}
         length = resp[2]
         # Cap length at actual response size (some firmware reports incorrect length)
         length = min(length, len(resp) - 3)
-        return bytes(resp[3 : 3 + length])
+        data = bytes(resp[3 : 3 + length])
+        if resp[1] == _ResponseStatus.ERROR.value:
+            # Error responses carry 4 unknown bytes, then a NUL-terminated message.
+            message_bytes = takewhile(lambda c: c > 0, data[4:])
+            message = bytes(message_bytes).decode(errors="replace")
+            if message == "HID_ERROR_SLAVE_NO_SLAVE":
+                raise HeadsetNotConnected(message)
+            raise RequestFailed(message)
+        assert resp[1] in {_ResponseStatus.NO_RESPONSE.value, _ResponseStatus.OK.value}
+        return data
 
     def get_device_info(self) -> DeviceInfo:
-        """Get the USB IDs of the base station.
+        """Get the USB IDs and firmware build time of the base station.
 
         `vendor_id` and `product_id` should match the constants this library
         targets.
         """
-        resp = self._request(_CommandType.GET_DEVICE_INFO)
-        assert len(resp) >= 8
-        return DeviceInfo(
-            vendor_id=int.from_bytes(resp[4:6], "little"),
-            product_id=int.from_bytes(resp[6:8], "little"),
-        )
+        return _parse_image_header(self._request(_CommandType.GET_DEVICE_INFO))
+
+    def get_headset_info(self) -> DeviceInfo:
+        """Get the IDs and firmware build time of the wireless headset.
+
+        Raises `HeadsetNotConnected` if the headset is off and undocked.
+        """
+        return _parse_image_header(self._request(_CommandType.GET_HEADSET_INFO, [0x01]))
 
     def get_base_firmware_version(self) -> FirmwareVersion:
         """Get the firmware version of the base station.
@@ -400,6 +411,14 @@ class DeviceNotConnected(Exception):
     """Device not connected."""
 
 
+class RequestFailed(Exception):
+    """The base station answered a request with an error message."""
+
+
+class HeadsetNotConnected(RequestFailed):
+    """The request needs the headset, which is off and undocked."""
+
+
 class _CommandType(Enum):
     GET_DEVICE_INFO = 0x03
     GET_HEADSET_STATUS = 0x54
@@ -425,6 +444,7 @@ class _CommandType(Enum):
     GET_ALERT_VOLUME = 0x7A
     GET_MIC_EQ = 0x7B
     GET_BATTERY_STATUS = 0x7C
+    GET_HEADSET_INFO = 0x83
     GET_HEADSET_FIRMWARE_MINOR = 0xD6
     GET_HEADSET_FIRMWARE_MAJOR = 0xDA
 
@@ -484,12 +504,36 @@ class SliderType(Enum):
     SIDE_TONE = 0x05
 
 
+def _parse_image_header(resp: bytes) -> DeviceInfo:
+    """Parse the firmware image header returned by the base and the headset."""
+    assert len(resp) >= 8
+    build_time = None
+    if len(resp) >= 15:
+        try:
+            # The header does not say which time zone the build machine used.
+            build_time = datetime(  # noqa: DTZ001
+                int.from_bytes(resp[8:10], "little"), *resp[10:15]
+            )
+        except ValueError:
+            LOGGER.debug("Invalid build time in image header")
+    return DeviceInfo(
+        vendor_id=int.from_bytes(resp[4:6], "little"),
+        product_id=int.from_bytes(resp[6:8], "little"),
+        build_time=build_time,
+    )
+
+
 @dataclass
 class DeviceInfo:
-    """USB identity of the base station."""
+    """Identity of the base station or headset, from its firmware image header.
+
+    `build_time` is the firmware build time, in an unknown time zone, or
+    `None` if the header does not hold a valid one.
+    """
 
     vendor_id: int
     product_id: int
+    build_time: datetime | None = None
 
     def __str__(self) -> str:
         return f"{self.vendor_id:04x}:{self.product_id:04x}"
