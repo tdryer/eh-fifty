@@ -61,12 +61,15 @@ For long-running applications, you can also manage the lifecycle manually:
 
 ## Non-root access
 
-Create a udev rule to allow non-root users to access the USB device:
+Create a udev rule to allow the logged-in user to access the USB device:
 
-    echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="9886", ATTR{idProduct}=="002c", MODE:="0666"' | \
+    echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="9886", ATTR{idProduct}=="002c", TAG+="uaccess"' | \
         sudo tee /etc/udev/rules.d/50-astro-a50.rules
 
-Re-plug your base station to apply the new rule.
+Re-plug your base station to apply the new rule. The file name must sort before
+systemd's `71-seat.rules`. On systems without systemd-logind, use
+`GROUP="plugdev", MODE="0660"` instead of `TAG+="uaccess"` and add your user to
+the `plugdev` group.
 
 ## Protocol Documentation
 
