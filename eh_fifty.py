@@ -121,7 +121,8 @@ class Device:
     def get_headset_info(self) -> DeviceInfo:
         """Get the IDs and firmware build time of the wireless headset.
 
-        Raises `HeadsetNotConnected` if the headset is off and undocked.
+        The headset only answers this while docked. Raises `HeadsetNotConnected`
+        if it is off and undocked, or `RequestFailed` if it is on but undocked.
         """
         return _parse_image_header(self._request(_CommandType.GET_HEADSET_INFO, [0x01]))
 

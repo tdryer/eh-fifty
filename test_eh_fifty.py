@@ -218,10 +218,11 @@ def test_device_info(device: Device) -> None:
 
 
 def test_headset_info(device: Device) -> None:
-    try:
-        info = device.get_headset_info()
-    except HeadsetNotConnected:
-        pytest.skip("headset is off and undocked")
+    if not device.get_headset_status().is_docked:
+        with pytest.raises(RequestFailed):
+            device.get_headset_info()
+        pytest.skip("headset info needs the headset docked")
+    info = device.get_headset_info()
     assert info.product_id > 0
     assert info.build_time is not None
     assert info.build_time.year >= 2020
