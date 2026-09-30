@@ -507,20 +507,14 @@ class SliderType(Enum):
 
 def _parse_image_header(resp: bytes) -> DeviceInfo:
     """Parse the firmware image header returned by the base and the headset."""
-    assert len(resp) >= 8
-    build_time = None
-    if len(resp) >= 15:
-        try:
-            # The header does not say which time zone the build machine used.
-            build_time = datetime(  # noqa: DTZ001
-                int.from_bytes(resp[8:10], "little"), *resp[10:15]
-            )
-        except ValueError:
-            LOGGER.debug("Invalid build time in image header")
+    assert len(resp) >= 15
     return DeviceInfo(
         vendor_id=int.from_bytes(resp[4:6], "little"),
         product_id=int.from_bytes(resp[6:8], "little"),
-        build_time=build_time,
+        # The header does not say which time zone the build machine used.
+        build_time=datetime(  # noqa: DTZ001
+            int.from_bytes(resp[8:10], "little"), *resp[10:15]
+        ),
     )
 
 
@@ -528,13 +522,12 @@ def _parse_image_header(resp: bytes) -> DeviceInfo:
 class DeviceInfo:
     """Identity of the base station or headset, from its firmware image header.
 
-    `build_time` is the firmware build time, in an unknown time zone, or
-    `None` if the header does not hold a valid one.
+    `build_time` is the firmware build time, in an unknown time zone.
     """
 
     vendor_id: int
     product_id: int
-    build_time: datetime | None = None
+    build_time: datetime
 
     def __str__(self) -> str:
         return f"{self.vendor_id:04x}:{self.product_id:04x}"

@@ -213,7 +213,6 @@ def test_device_info(device: Device) -> None:
     assert info.vendor_id == _VENDOR
     assert info.product_id == _PRODUCT
     assert str(info) == "9886:002c"
-    assert info.build_time is not None
     assert info.build_time.year >= 2020
 
 
@@ -224,7 +223,6 @@ def test_headset_info(device: Device) -> None:
         pytest.skip("headset info needs the headset docked")
     info = device.get_headset_info()
     assert info.product_id > 0
-    assert info.build_time is not None
     assert info.build_time.year >= 2020
 
 
@@ -262,13 +260,7 @@ def test_image_header_parsing() -> None:
     info = _device_answering(2, header).get_headset_info()
     assert info.vendor_id == 0x0000
     assert info.product_id == 0x002F
-    assert info.build_time is not None
     assert info.build_time.isoformat() == "2021-12-06T10:55:12"
-
-    zeroed_date = header[:8] + bytes(7) + header[15:]
-    info = _device_answering(2, zeroed_date).get_headset_info()
-    assert info.product_id == 0x002F
-    assert info.build_time is None
 
 
 def test_base_firmware_version(device: Device) -> None:
