@@ -506,7 +506,7 @@ class SliderType(Enum):
 
 
 def _parse_image_header(resp: bytes) -> DeviceInfo:
-    """Parse the firmware image header returned by the base and the headset."""
+    """Parse the firmware image header returned by the base station and the headset."""
     assert len(resp) >= 15
     return DeviceInfo(
         vendor_id=int.from_bytes(resp[4:6], "little"),
