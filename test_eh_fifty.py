@@ -5,9 +5,13 @@ configuration before the test session and restores it afterward, so running
 ``pytest`` does not clobber the user's saved settings.
 """
 
+from __future__ import annotations
+
 import random
 import string
 import time
+
+import pytest
 
 from eh_fifty import (
     _EQ_PRESET_BANDS,
@@ -22,7 +26,9 @@ from eh_fifty import (
     _PRODUCT,
     _VENDOR,
     Device,
+    HeadsetNotConnected,
     NoiseGateMode,
+    RequestFailed,
     SliderType,
 )
 
@@ -207,6 +213,54 @@ def test_device_info(device: Device) -> None:
     assert info.vendor_id == _VENDOR
     assert info.product_id == _PRODUCT
     assert str(info) == "9886:002c"
+    assert info.build_time.year >= 2020
+
+
+def test_headset_info(device: Device) -> None:
+    if not device.get_headset_status().is_docked:
+        with pytest.raises(RequestFailed):
+            device.get_headset_info()
+        pytest.skip("headset info needs the headset docked")
+    info = device.get_headset_info()
+    assert info.product_id > 0
+    assert info.build_time.year >= 2020
+
+
+class _FakeUSBDevice:
+    def __init__(self, response: list[int]) -> None:
+        self._response = response
+
+    def write(self, _endpoint: int, data: list[int], _timeout: int) -> int:
+        return len(data)
+
+    def read(self, _endpoint: int, _size: int, _timeout: int) -> list[int]:
+        return self._response
+
+
+def _device_answering(status: int, data: bytes) -> Device:
+    device = Device.__new__(Device)
+    device._dev = _FakeUSBDevice([0x02, status, len(data), *data])
+    return device
+
+
+def test_error_response_raises() -> None:
+    no_slave = _device_answering(1, b"\x05\x00\x00\x01HID_ERROR_SLAVE_NO_SLAVE\x00")
+    with pytest.raises(HeadsetNotConnected, match="HID_ERROR_SLAVE_NO_SLAVE"):
+        no_slave.get_headset_info()
+    other = _device_answering(1, b"\x05\x00\x00\x01HID_ERROR_OTHER\x00")
+    with pytest.raises(RequestFailed, match="HID_ERROR_OTHER") as excinfo:
+        other.get_headset_info()
+    assert not isinstance(excinfo.value, HeadsetNotConnected)
+
+
+def test_image_header_parsing() -> None:
+    header = bytes.fromhex(
+        "f001010800002f00e5070c060a370c0000f80101081c9c000000fc0101080502010812020108"
+    )
+    info = _device_answering(2, header).get_headset_info()
+    assert info.vendor_id == 0x0000
+    assert info.product_id == 0x002F
+    assert info.build_time.isoformat() == "2021-12-06T10:55:12"
 
 
 def test_base_firmware_version(device: Device) -> None:
