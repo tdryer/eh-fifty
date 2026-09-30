@@ -27,7 +27,8 @@ supported by [PyUSB][pyusb].
 * [X] get charging status and battery level
 * [X] get headset status
 * [X] get EQ preset name
-* [X] get device info (USB IDs)
+* [X] get base station device info
+* [X] get headset device info
 * [X] get base and headset firmware versions
 * [ ] update firmware
 
@@ -107,7 +108,7 @@ active configuration effect immediately; saving changes is not required.
 
 Type | Description
 -----|----------------------------------------------------------------------
-0x03 | get device info (USB IDs, base firmware major)
+0x03 | get base station device info (USB IDs and firmware build time)
 ...  |
 0x54 | returns headset power and dock status
 0x55 | get base firmware minor version
@@ -139,6 +140,8 @@ Type | Description
 0x7A | get alert volume
 0x7B | get microphone EQ preset
 0x7C | get battery status
+...  |
+0x83 | get headset device info (IDs and firmware build time; requires argument `0x01`)
 ...  |
 0xD6 | get headset firmware minor version (requires argument `0x0A`)
 ...  |
