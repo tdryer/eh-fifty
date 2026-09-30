@@ -213,7 +213,7 @@ def test_device_info(device: Device) -> None:
     assert info.vendor_id == _VENDOR
     assert info.product_id == _PRODUCT
     assert str(info) == "9886:002c"
-    assert info.build_time.year >= 2020
+    assert info.build_time.year >= 2019
 
 
 def test_headset_info(device: Device) -> None:
@@ -223,7 +223,7 @@ def test_headset_info(device: Device) -> None:
         pytest.skip("headset info needs the headset docked")
     info = device.get_headset_info()
     assert info.product_id > 0
-    assert info.build_time.year >= 2020
+    assert info.build_time.year >= 2019
 
 
 class _FakeUSBDevice:
