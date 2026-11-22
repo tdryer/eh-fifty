@@ -280,8 +280,8 @@ class Device:
     def get_balance(self) -> int:
         """Get the balance.
 
-        Balance is represented by integer in range 0 (100% game audio) to 255
-        (100% chat audio).
+        Balance is represented by integer in range 0 (100% chat audio) to 255
+        (100% game audio).
 
         This value is the same as the default balance, until the buttons on the
         headset have adjusted it.
@@ -294,8 +294,8 @@ class Device:
     def get_default_balance(self, saved: bool = False) -> int:
         """Get the default balance.
 
-        Balance is represented by integer in range 0 (100% game audio) to 255
-        (100% chat audio).
+        Balance is represented by integer in range 0 (100% chat audio) to 255
+        (100% game audio).
 
         If `saved=True`, return the saved value instead of the active value.
         """
@@ -307,8 +307,8 @@ class Device:
     def set_default_balance(self, balance: int) -> None:
         """Set the default balance.
 
-        Balance is represented by integer in range 0 (100% game audio) to 255
-        (100% chat audio).
+        Balance is represented by integer in range 0 (100% chat audio) to 255
+        (100% game audio).
         """
         assert 0 <= balance <= 255
         resp = self._request(_CommandType.SET_DEFAULT_BALANCE, [balance])
